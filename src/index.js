@@ -6,7 +6,7 @@ import StarRating from "./starRating";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <StarRating maxRating="as" />
-    {/* <App /> */}
+    {/* <StarRating maxRating="as" /> */}
+    <App />
   </React.StrictMode>,
 );
