@@ -84,31 +84,72 @@ function Box({ children }) {
 function Loader() {
   return <div className="loader">Loading.....</div>;
 }
+function ErrorMessage({ errorMSG }) {
+  return (
+    <p className="error">
+      <span>❌ </span>
+      {errorMSG}
+    </p>
+  );
+}
 
-function MoviesList({ query }) {
+function MoviesList({ query, onSelectMovie }) {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(null);
+
   useEffect(
     function () {
-      if (query.length < 3) return;
+      const controller = new AbortController();
+
+      if (query.length < 3) {
+        setMovies([]);
+        setIsError("");
+        return;
+      }
 
       async function fetchMovies() {
-        const res = await fetch(`http://www.omdbapi.com/?apikey=636f8485&s=${query}`);
-        const data = await res.json();
-        console.log(data.Search);
-        setMovies(data.Search);
+        try {
+          setIsLoading(true);
+          setIsError("");
+
+          const res = await fetch(`http://www.omdbapi.com/?apikey=636f8485&s=${query}`, {
+            signal: controller.signal,
+          });
+
+          if (!res.ok) throw new Error("Something went wrong with fetching movies");
+
+          const data = await res.json();
+
+          if (data.Response === "False") throw new Error(data.Error);
+
+          setMovies(data.Search);
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            setIsError(error.message);
+          }
+          console.log(error.message);
+        } finally {
+          setIsLoading(false);
+        }
       }
+
       fetchMovies();
+
+      return function () {
+        controller.abort();
+      };
     },
     [query],
   );
 
-  return isLoading ? (
-    <Loader />
-  ) : (
-    <ul className="list">
+  if (isLoading) return <Loader />;
+  if (isError) return <ErrorMessage errorMSG={isError} />;
+
+  return (
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <li key={movie.imdbID}>
+        <li key={movie.imdbID} onClick={() => onSelectMovie(movie.imdbID)}>
           <img src={movie.Poster} alt={`${movie.Title} poster`} />
           <h3>{movie.Title}</h3>
           <div>
@@ -140,13 +181,21 @@ function MovieDetails({ movieData }) {
   );
 }
 
-function WatchedBox() {
+function WatchedBox({ isSelected }) {
   const [watched, setWatched] = useState(tempWatchedData);
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
-  return (
+  useEffect(function fetchMovieDetails() {
+    try {
+      const res = fetch(`0000000000..0..0${isSelected}`);
+    } catch (error) {}
+  });
+
+  return isSelected ? (
+    <MovieDetails />
+  ) : (
     <>
       <div className="summary">
         <h2>Movies you watched</h2>
@@ -197,7 +246,11 @@ function WatchedBox() {
 }
 export default function App() {
   const [query, setQuery] = useState("");
+  const [isSelected, setIsSelected] = useState("");
 
+  function handleSelectedMovie(id) {
+    setIsSelected(id);
+  }
   return (
     <>
       <Navbar>
@@ -206,10 +259,10 @@ export default function App() {
       </Navbar>
       <main className="main">
         <Box>
-          <MoviesList query={query} />
+          <MoviesList query={query} onSelectMovie={handleSelectedMovie} />
         </Box>
         <Box>
-          <WatchedBox />
+          <WatchedBox isSelected={isSelected} />
         </Box>
       </main>
     </>
