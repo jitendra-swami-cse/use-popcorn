@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StarRating from "./StarRatings.js";
 
 const tempMovieData = [
   {
@@ -164,37 +165,102 @@ function MoviesList({ query, onSelectMovie }) {
   );
 }
 
-function MovieDetails({ movieData }) {
+function MovieDetails({ movieData, onAddWatched }) {
+  const [userRating, setUserRating] = useState(0);
+
   return (
     <div className="details">
       <header>
-        <button class="btn-back">←</button>
+        <button className="btn-back">←</button>
         <img src={movieData.Poster} alt={`Poster of Movie ${movieData.Title}`} />
         <div className="details-overview">
           <h2>{movieData.Title}</h2>
-          <p></p>
-          <p></p>
-          <p></p>
+          <p>
+            {movieData.Released} • {movieData.Runtime}
+          </p>
+          <p>{movieData.Genre}</p>
+          <p>⭐ {movieData.imdbRating} IMDb rating</p>
         </div>
       </header>
+      <section>
+        <div className="rating">
+          <StarRating maxRating={10} size={24} onSetRating={setUserRating} />
+          {userRating ? (
+            <button className="btn-add" onClick={() => onAddWatched(movieData)}>
+              + Add to list
+            </button>
+          ) : (
+            ""
+          )}
+        </div>
+        <p>
+          <em>{movieData.Plot}</em>
+        </p>
+        <p>Starring {movieData.Actors}</p>
+        <p>{movieData.Director}</p>
+      </section>
     </div>
   );
 }
 
-function WatchedBox({ isSelected }) {
+function WatchedBox({ isSelected, onNewMovieAdd }) {
   const [watched, setWatched] = useState(tempWatchedData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState("");
+  const [movieData, setMovieData] = useState(null);
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
-  useEffect(function fetchMovieDetails() {
-    try {
-      const res = fetch(`0000000000..0..0${isSelected}`);
-    } catch (error) {}
-  });
+  useEffect(
+    function () {
+      async function fetchMovieDetails() {
+        const controller = new AbortController();
+        try {
+          setIsLoading(true);
+          setIsError("");
+          const res = await fetch(`https://www.omdbapi.com/?apikey=636f8485&i=${isSelected}`, { signal: controller.signal });
+          const data = await res.json();
+          console.log(`https://www.omdbapi.com/?apikey=636f8485&i=${isSelected}`);
+          console.log(data);
+          setMovieData(data);
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            setIsError(error.message);
+          }
+          console.log(error.message);
+        } finally {
+          setIsLoading(false);
+          setIsError("");
+        }
+      }
+
+      fetchMovieDetails();
+      return function () {
+        controller.abort();
+      };
+    },
+    [isSelected],
+  );
+
+  useEffect(
+    function () {
+      if (movieData) document.title = `Movie | ${movieData.Title}`;
+    },
+    [movieData],
+  );
+
+  function handleAddWatched(newMovie) {
+    setWatched([...watched, newMovie]);
+    onNewMovieAdd();
+  }
 
   return isSelected ? (
-    <MovieDetails />
+    isLoading ? (
+      <Loader />
+    ) : (
+      <MovieDetails movieData={movieData} onAddWatched={handleAddWatched} />
+    )
   ) : (
     <>
       <div className="summary">
@@ -249,8 +315,9 @@ export default function App() {
   const [isSelected, setIsSelected] = useState("");
 
   function handleSelectedMovie(id) {
-    setIsSelected(id);
+    setIsSelected((s) => (s ? "" : id));
   }
+
   return (
     <>
       <Navbar>
@@ -262,7 +329,7 @@ export default function App() {
           <MoviesList query={query} onSelectMovie={handleSelectedMovie} />
         </Box>
         <Box>
-          <WatchedBox isSelected={isSelected} />
+          <WatchedBox isSelected={isSelected} onNewMovieAdd={handleSelectedMovie} />
         </Box>
       </main>
     </>
