@@ -214,8 +214,9 @@ function WatchedBox({ isSelected, onNewMovieAdd }) {
 
   useEffect(
     function () {
+      // if (isSelected) setMovieData(null);
+      const controller = new AbortController();
       async function fetchMovieDetails() {
-        const controller = new AbortController();
         try {
           setIsLoading(true);
           setIsError("");
@@ -315,7 +316,7 @@ export default function App() {
   const [isSelected, setIsSelected] = useState("");
 
   function handleSelectedMovie(id) {
-    setIsSelected((s) => (s ? "" : id));
+    setIsSelected(id);
   }
 
   return (
