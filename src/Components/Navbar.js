@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 
 export function Search({ query, setQuery }) {
+  const [value, setValue] = useState("");
   const inputEL = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
+
+  function Search(strSearch) {
+    const urlPrefix = `http://www.omdbapi.com/?apikey=636f8485&s=`;
+    strSearch.length > 2 ? setQuery(urlPrefix + strSearch) : setQuery("");
+    setValue(strSearch);
+    return;
+  }
 
   useEffect(
     function () {
@@ -28,8 +36,8 @@ export function Search({ query, setQuery }) {
       className="search"
       type="text"
       placeholder="Search movies..."
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
+      value={value}
+      onChange={(e) => Search(e.target.value)}
       ref={inputEL}
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}

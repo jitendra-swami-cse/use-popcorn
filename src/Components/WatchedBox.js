@@ -7,7 +7,8 @@ const tempWatchedData = [
     imdbID: "tt1375666",
     Title: "Inception",
     Year: "2010",
-    Poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
     runtime: 148,
     imdbRating: 8.8,
     userRating: 10,
@@ -16,14 +17,16 @@ const tempWatchedData = [
     imdbID: "tt0088763",
     Title: "Back to the Future",
     Year: "1985",
-    Poster: "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
+    Poster:
+      "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
     runtime: 116,
     imdbRating: 8.5,
     userRating: 9,
   },
 ];
 
-const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+const average = (arr) =>
+  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
 function MovieDetails({ movieData, onAddWatched, onCloseMovie }) {
   const [userRating, setUserRating] = useState(0);
@@ -47,7 +50,10 @@ function MovieDetails({ movieData, onAddWatched, onCloseMovie }) {
         <button className="btn-back" onClick={onCloseMovie}>
           ←
         </button>
-        <img src={movieData.Poster} alt={`Poster of Movie ${movieData.Title}`} />
+        <img
+          src={movieData.Poster}
+          alt={`Poster of Movie ${movieData.Title}`}
+        />
         <div className="details-overview">
           <h2>{movieData.Title}</h2>
           <p>
@@ -61,7 +67,10 @@ function MovieDetails({ movieData, onAddWatched, onCloseMovie }) {
         <div className="rating">
           <StarRating maxRating={10} size={24} onSetRating={setUserRating} />
           {userRating ? (
-            <button className="btn-add" onClick={() => onAddWatched(movieData)}>
+            <button
+              className="btn-add"
+              onClick={() => onAddWatched(userRating)}
+            >
               + Add to list
             </button>
           ) : (
@@ -87,6 +96,7 @@ export function WatchedBox({ isSelected, onNewMovieAdd, onCloseMovie }) {
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
+  // const data = useFetchData();
   useEffect(
     function () {
       // if (isSelected) setMovieData(null);
@@ -95,16 +105,19 @@ export function WatchedBox({ isSelected, onNewMovieAdd, onCloseMovie }) {
         try {
           setIsLoading(true);
           setIsError("");
-          const res = await fetch(`https://www.omdbapi.com/?apikey=636f8485&i=${isSelected}`, { signal: controller.signal });
+          const res = await fetch(
+            `https://www.omdbapi.com/?apikey=636f8485&i=${isSelected}`,
+            { signal: controller.signal },
+          );
           const data = await res.json();
-          console.log(`https://www.omdbapi.com/?apikey=636f8485&i=${isSelected}`);
-          console.log(data);
           setMovieData(data);
         } catch (error) {
           if (error.name !== "AbortError") {
             setIsError(error.message);
           }
-          console.log(error.message);
+
+          // console.log("error is as:");
+          // console.log(error);
         } finally {
           setIsLoading(false);
           setIsError("");
@@ -126,7 +139,14 @@ export function WatchedBox({ isSelected, onNewMovieAdd, onCloseMovie }) {
     [isSelected, movieData],
   );
 
-  function handleAddWatched(newMovie) {
+  function handleAddWatched(userRating) {
+    console.log(movieData.Runtime);
+    const newMovie = {
+      ...movieData,
+      runtime: Number(movieData.Runtime.split(" ")[0]),
+      userRating,
+    };
+    console.log("movie added with Rating: " + userRating + "<- ok");
     setWatched([...watched, newMovie]);
     onNewMovieAdd();
   }
@@ -135,7 +155,11 @@ export function WatchedBox({ isSelected, onNewMovieAdd, onCloseMovie }) {
     isLoading ? (
       <Loader />
     ) : (
-      <MovieDetails movieData={movieData} onAddWatched={handleAddWatched} onCloseMovie={onCloseMovie} />
+      <MovieDetails
+        movieData={movieData}
+        onAddWatched={handleAddWatched}
+        onCloseMovie={onCloseMovie}
+      />
     )
   ) : (
     <>
