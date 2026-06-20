@@ -15,11 +15,17 @@ export default function App() {
 
   function handleSelectedMovie(id) {
     const apiPrefix = `https://www.omdbapi.com/?apikey=636f8485&i=`;
-    setSelectedMovie(apiPrefix + id === selectedMovie ? "" : apiPrefix + id);
+
+    setSelectedMovie(
+      apiPrefix + id === selectedMovie
+        ? setMovieData(null) && ""
+        : apiPrefix + id,
+    );
   }
 
   function handleCloseMovie() {
     setSelectedMovie("");
+    setMovieData(null);
   }
   return (
     <>
