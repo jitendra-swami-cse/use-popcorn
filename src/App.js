@@ -8,12 +8,13 @@ import { useFetchData } from "./Hooks/useFetchData.js";
 export default function App() {
   const [query, setQuery] = useState("");
   const [isSelected, setIsSelected] = useState("");
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState(null);
 
   const { isLoading, isError } = useFetchData(query, setMovies);
 
   function handleSelectedMovie(id) {
-    setIsSelected(id === isSelected ? "" : id);
+    const apiPrefix = `https://www.omdbapi.com/?apikey=636f8485&i=`;
+    setIsSelected(apiPrefix + id === isSelected ? "" : apiPrefix + id);
   }
 
   function handleCloseMovie() {
@@ -27,16 +28,14 @@ export default function App() {
       </Navbar>
       <main className="main">
         <Box>
-          {isLoading ? (
-            <Loader />
-          ) : isError ? (
-            <ErrorMessage errorMSG={isError} />
-          ) : (
-            <MoviesList
-              movies={movies?.Search}
-              onSelectMovie={handleSelectedMovie}
-            />
-          )}
+          {(isLoading && <Loader />) ||
+            (isError && <ErrorMessage errorMSG={isError} />) ||
+            (movies && (
+              <MoviesList
+                movies={movies?.Search}
+                onSelectMovie={handleSelectedMovie}
+              />
+            ))}
         </Box>
         <Box>
           <WatchedBox

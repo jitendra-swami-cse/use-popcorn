@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Loader } from "./smallerComps";
+import { Loader, ErrorMessage } from "./smallerComps";
 import StarRating from "./StarRatings";
+import { useFetchData } from "../Hooks/useFetchData";
 
 const tempWatchedData = [
   {
@@ -89,54 +90,51 @@ function MovieDetails({ movieData, onAddWatched, onCloseMovie }) {
 
 export function WatchedBox({ isSelected, onNewMovieAdd, onCloseMovie }) {
   const [watched, setWatched] = useState(tempWatchedData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState("");
   const [movieData, setMovieData] = useState(null);
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
-  // const data = useFetchData();
+  const { isLoading, isError } = useFetchData(isSelected, setMovieData);
+
+  // useEffect(
+  //   function () {
+  //     // if (isSelected) setMovieData(null);
+  //     const controller = new AbortController();
+  //     async function fetchMovieDetails() {
+  //       try {
+  //         setIsLoading(true);
+  //         setIsError("");
+  //         const res = await fetch(isSelected, { signal: controller.signal });
+  //         const data = await res.json();
+  //         console.log(data);
+  //         setMovieData(data);
+  //       } catch (error) {
+  //         if (error.name !== "AbortError") {
+  //           setIsError(error.message);
+  //         }
+
+  //         // console.log("error is as:");
+  //         // console.log(error);
+  //       } finally {
+  //         setIsLoading(false);
+  //         setIsError("");
+  //       }
+  //     }
+
+  //     fetchMovieDetails();
+  //     return function () {
+  //       controller.abort();
+  //     };
+  //   },
+  //   [isSelected],
+  // );
+
   useEffect(
     function () {
-      // if (isSelected) setMovieData(null);
-      const controller = new AbortController();
-      async function fetchMovieDetails() {
-        try {
-          setIsLoading(true);
-          setIsError("");
-          const res = await fetch(
-            `https://www.omdbapi.com/?apikey=636f8485&i=${isSelected}`,
-            { signal: controller.signal },
-          );
-          const data = await res.json();
-          setMovieData(data);
-        } catch (error) {
-          if (error.name !== "AbortError") {
-            setIsError(error.message);
-          }
-
-          // console.log("error is as:");
-          // console.log(error);
-        } finally {
-          setIsLoading(false);
-          setIsError("");
-        }
-      }
-
-      fetchMovieDetails();
-      return function () {
-        controller.abort();
-      };
+      document.title = movieData ? `Movie | ${movieData.Title}` : "usePopcorn";
     },
-    [isSelected],
-  );
-
-  useEffect(
-    function () {
-      document.title = isSelected ? `Movie | ${movieData.Title}` : "usePopcorn";
-    },
-    [isSelected, movieData],
+    [movieData],
   );
 
   function handleAddWatched(userRating) {
@@ -151,62 +149,62 @@ export function WatchedBox({ isSelected, onNewMovieAdd, onCloseMovie }) {
     onNewMovieAdd();
   }
 
-  return isSelected ? (
-    isLoading ? (
-      <Loader />
-    ) : (
+  return (
+    (isLoading && <Loader />) ||
+    (isError && <ErrorMessage errorMSG={isError} />) ||
+    (movieData && (
       <MovieDetails
         movieData={movieData}
         onAddWatched={handleAddWatched}
         onCloseMovie={onCloseMovie}
       />
-    )
-  ) : (
-    <>
-      <div className="summary">
-        <h2>Movies you watched</h2>
-        <div>
-          <p>
-            <span>#️⃣</span>
-            <span>{watched.length} movies</span>
-          </p>
-          <p>
-            <span>⭐️</span>
-            <span>{avgImdbRating}</span>
-          </p>
-          <p>
-            <span>🌟</span>
-            <span>{avgUserRating}</span>
-          </p>
-          <p>
-            <span>⏳</span>
-            <span>{avgRuntime} min</span>
-          </p>
+    )) || (
+      <>
+        <div className="summary">
+          <h2>Movies you watched</h2>
+          <div>
+            <p>
+              <span>#️⃣</span>
+              <span>{watched.length} movies</span>
+            </p>
+            <p>
+              <span>⭐️</span>
+              <span>{avgImdbRating}</span>
+            </p>
+            <p>
+              <span>🌟</span>
+              <span>{avgUserRating}</span>
+            </p>
+            <p>
+              <span>⏳</span>
+              <span>{avgRuntime} min</span>
+            </p>
+          </div>
         </div>
-      </div>
 
-      <ul className="list">
-        {watched.map((movie) => (
-          <li key={movie.imdbID}>
-            <img src={movie.Poster} alt={`${movie.Title} poster`} />
-            <h3>{movie.Title}</h3>
-            <div>
-              <p>
-                <span>⭐️</span>
-                <span>{movie.imdbRating}</span>
-              </p>
-              <p>
-                <span>🌟</span>
-                <span>{movie.userRating}</span>
-              </p>
-              <p>
-                <span>⏳</span>
-                <span>{movie.runtime} min</span>
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </>
+        <ul className="list">
+          {watched.map((movie) => (
+            <li key={movie.imdbID}>
+              <img src={movie.Poster} alt={`${movie.Title} poster`} />
+              <h3>{movie.Title}</h3>
+              <div>
+                <p>
+                  <span>⭐️</span>
+                  <span>{movie.imdbRating}</span>
+                </p>
+                <p>
+                  <span>🌟</span>
+                  <span>{movie.userRating}</span>
+                </p>
+                <p>
+                  <span>⏳</span>
+                  <span>{movie.runtime} min</span>
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </>
+    )
   );
 }
