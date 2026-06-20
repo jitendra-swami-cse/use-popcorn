@@ -27,6 +27,7 @@ export function useFetchData(url, stateSetter) {
           console.log(resData);
           // 2. Set the data only if everything was successful
           stateSetter(resData);
+
           setIsError("");
         } catch (error) {
           if (error.name !== "AbortError") {

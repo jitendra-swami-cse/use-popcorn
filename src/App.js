@@ -7,18 +7,19 @@ import { useFetchData } from "./Hooks/useFetchData.js";
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [isSelected, setIsSelected] = useState("");
+  const [selectedMovie, setSelectedMovie] = useState("");
   const [movies, setMovies] = useState(null);
+  const [movieData, setMovieData] = useState(null);
 
   const { isLoading, isError } = useFetchData(query, setMovies);
 
   function handleSelectedMovie(id) {
     const apiPrefix = `https://www.omdbapi.com/?apikey=636f8485&i=`;
-    setIsSelected(apiPrefix + id === isSelected ? "" : apiPrefix + id);
+    setSelectedMovie(apiPrefix + id === selectedMovie ? "" : apiPrefix + id);
   }
 
   function handleCloseMovie() {
-    setIsSelected("");
+    setSelectedMovie("");
   }
   return (
     <>
@@ -39,9 +40,11 @@ export default function App() {
         </Box>
         <Box>
           <WatchedBox
-            isSelected={isSelected}
+            selectedMovie={selectedMovie}
+            movieData={movieData}
             onNewMovieAdd={handleSelectedMovie}
             onCloseMovie={handleCloseMovie}
+            setMovieData={setMovieData}
           />
         </Box>
       </main>
