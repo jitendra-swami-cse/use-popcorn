@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader, ErrorMessage } from "./smallerComps";
 import { MovieDetails } from "./MovieDetails";
 import { useFetchData } from "../Hooks/useFetchData";
+import { useLocalStorageState } from "../Hooks/useLocalStorage";
 
 const tempWatchedData = [
   {
@@ -32,16 +33,21 @@ const average = (arr) =>
 export function WatchedBox({
   selectedMovie,
   movieData,
-  onNewMovieAdd,
   onCloseMovie,
   setMovieData,
 }) {
-  const [watched, setWatched] = useState(tempWatchedData);
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
-  const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
+  const [watched, setWatched] = useLocalStorageState([], "watchedMovies_2");
+
+  const avgImdbRating = average(
+    watched.map((movie) => movie.imdbRating),
+  ).toFixed(2);
+  const avgUserRating = average(
+    watched.map((movie) => movie.userRating),
+  ).toFixed(2);
+  const avgRuntime = average(watched.map((movie) => movie.runtime)).toFixed(2);
 
   const { isLoading, isError } = useFetchData(selectedMovie, setMovieData);
+  // console.log(movieData);
 
   useEffect(
     function () {
@@ -51,15 +57,19 @@ export function WatchedBox({
   );
 
   function handleAddWatched(userRating) {
-    console.log(movieData.Runtime);
     const newMovie = {
       ...movieData,
       runtime: Number(movieData.Runtime.split(" ")[0]),
       userRating,
     };
-    console.log("movie added with Rating: " + userRating + "<- ok");
     setWatched([...watched, newMovie]);
-    onNewMovieAdd();
+    onCloseMovie();
+  }
+
+  function deleteWatchedMovie(idToDel) {
+    setWatched([
+      ...watched.filter((movie) => (movie.imdbID === idToDel ? null : movie)),
+    ]);
   }
 
   return (
@@ -113,6 +123,12 @@ export function WatchedBox({
                   <span>⏳</span>
                   <span>{movie.runtime} min</span>
                 </p>
+                <button
+                  class="btn-delete"
+                  onClick={() => deleteWatchedMovie(movie.imdbID)}
+                >
+                  X
+                </button>
               </div>
             </li>
           ))}

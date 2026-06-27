@@ -24,7 +24,6 @@ export function useFetchData(url, stateSetter) {
           // 1. Check for specific API errors first
           if (resData.Response === "False") throw new Error(resData.Error);
 
-          console.log(resData);
           // 2. Set the data only if everything was successful
           stateSetter(resData);
 

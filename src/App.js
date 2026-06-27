@@ -48,7 +48,6 @@ export default function App() {
           <WatchedBox
             selectedMovie={selectedMovie}
             movieData={movieData}
-            onNewMovieAdd={handleSelectedMovie}
             onCloseMovie={handleCloseMovie}
             setMovieData={setMovieData}
           />
