@@ -30,7 +30,7 @@ export default function App() {
   return (
     <>
       <Navbar>
-        <Search query={query} setQuery={setQuery} />
+        <Search setQuery={setQuery} />
         <NumResults numMovies={movies?.Search?.length} />
       </Navbar>
       <main className="main">

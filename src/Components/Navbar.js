@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useKey } from "../Hooks/useKey";
 
-export function Search({ query, setQuery }) {
+export function Search({ setQuery }) {
   const [value, setValue] = useState("");
   const inputEL = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -21,7 +21,6 @@ export function Search({ query, setQuery }) {
   useKey("escape", function () {
     inputEL.current.blur();
   });
-
 
   // Note - I think the useKey Custom hook add event listeners to document which kept on document for all the time so check this?
   // useEffect(
@@ -58,6 +57,7 @@ export function Search({ query, setQuery }) {
 }
 
 export function NumResults({ numMovies }) {
+  console.log(`numMovies is : ${numMovies}`);
   return (
     <p className="num-results">
       Found <strong>{numMovies}</strong> results
